@@ -65,8 +65,13 @@ def text2vec(model,all_texts,texts_max_lenght):
     J = texts_max_lenght
     K = 300
 
+    J_test = 0
+
     dataset = pd.DataFrame(index=range(0,I),columns=[k for k in range(0,J)])
+    
     unkown_words = set()
+
+    print("Building dataset...")   
 
     for i,text in enumerate(all_texts):
         for j,word in enumerate(text):
@@ -74,7 +79,15 @@ def text2vec(model,all_texts,texts_max_lenght):
                 dataset[i][j] = model.word_vec(word)
             except KeyError:
                 dataset[i][j] = np.random.uniform(-1,1,size=300)
-                unkown_words.add(word)               
+                unkown_words.add(word)
+
+        for k in range(j,J):
+            dataset[i][k] = np.zeros(300)
+
+        if i%100 == 0:
+            print(i)
+
+    print("J:"+str(J))        
 
     return dataset,unkown_words
 

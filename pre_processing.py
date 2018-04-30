@@ -8,17 +8,21 @@ import gensim.models as gm
 def split_text(text):
     '''Split words and english short forms '''
 
-    text = re.sub(r"\'s", " \'s", text) 
-    text = re.sub(r"\'ve", " \'ve", text) 
-    text = re.sub(r"n\'t", " n\'t", text) 
-    text = re.sub(r"\'re", " \'re", text) 
-    text = re.sub(r"\'d", " \'d", text) 
-    text = re.sub(r"\'ll", " \'ll", text) 
-    text = re.sub(r",", " , ", text) 
+    text = re.sub(r"\'s", " ", text) 
+    text = re.sub(r"\'ve", " have ", text) 
+    text = re.sub(r"n\'t", " not ", text) 
+    text = re.sub(r"\'re", " are ", text) 
+    text = re.sub(r"\'d", " would ", text) 
+    text = re.sub(r"\'ll", " will ", text)     
+    text = re.sub(r",", " ", text) 
     text = re.sub(r"!", " ! ", text) 
-    text = re.sub(r"\(", " \( ", text) 
-    text = re.sub(r"\)", " \) ", text) 
+    text = re.sub(r"\(", " ", text) 
+    text = re.sub(r"\)", " ", text) 
     text = re.sub(r"\?", " \? ", text)
+    text = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", text)   
+    text = re.sub(r"\s{2,}", " ", text)
+    text = re.sub(r"\'", " ", text) 
+    text = re.sub(r"\`", " ", text) 
 
     text = text.lower()
 
@@ -33,8 +37,8 @@ def load_word2vec_file(word2vec_file):
 
 def extract_words(negative_path,positive_path):
 
-    negative_files = os.listdir(negative_path)
-    positive_files = os.listdir(positive_path)
+    negative_files = sorted(os.listdir(negative_path))
+    positive_files = sorted(os.listdir(positive_path))
 
     labels = [0]*len(negative_files) + [1]*len(positive_files)
 
@@ -64,30 +68,31 @@ def text2vec(model,all_texts,texts_max_lenght):
     I = len(all_texts)
     J = texts_max_lenght
     K = 300
-
+    len_texts = []
     J_test = 0
 
-    dataset = pd.DataFrame(index=range(0,I),columns=[k for k in range(0,J)])
+    dataset = pd.DataFrame(index=range(0,I),columns=['Messages'])
     
+    print(dataset)
+
     unkown_words = set()
 
     print("Building dataset...")   
 
     for i,text in enumerate(all_texts):
+        dataset.at[i,'Messages'] = np.zeros((len(text),300))
+        len_texts.append(len(text))
         for j,word in enumerate(text):
             try:
-                dataset[i][j] = model.word_vec(word)
+                dataset.loc[i,'Messages'][j] = model.word_vec(word)
             except KeyError:
-                dataset[i][j] = np.random.uniform(-1,1,size=300)
+                dataset.loc[i,'Messages'][j] = np.random.uniform(-1,1,300)
                 unkown_words.add(word)
 
-        for k in range(j,J):
-            dataset[i][k] = np.zeros(300)
-
-        if i%100 == 0:
+        if i%100 == 0: #Progress indicator
             print(i)
 
-    print("J:"+str(J))        
+    print(len_texts)
 
     return dataset,unkown_words
 

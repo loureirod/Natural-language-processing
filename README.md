@@ -29,3 +29,19 @@ import pre_processing as pre
 
 dataset,labels = pre.load_dataset("path/to/folder")
 ```
+
+## Training
+
+The script train.py is in charge of the training. It imports pre_processing.py and Model.py and train the cnn model on the training set. In order to execute this code, make sure you have enough RAM, otherwise you will get a Memory Error while running :
+```python
+print("Reshaping data...")
+x_train, y_train = reshape_data(x_shuffle[:600] ,y_shuffle[:600])
+```
+If there is still a Memory Error, please try the following code :
+```
+import gc
+
+gc.collect()
+```
+
+
